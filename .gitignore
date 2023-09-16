@@ -1,0 +1,7 @@
+video_support/*.jpg
+output/*.jpg
+output/*.png
+vid/*.mp4
+*.pyc
+venv/
+*.pt
