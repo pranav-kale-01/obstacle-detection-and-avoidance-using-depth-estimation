@@ -6,6 +6,10 @@ import time
 import disparity
 import cv2
 import pyttsx3
+from pynput.keyboard import Key, Listener
+from paddleocr import PaddleOCR, draw_ocr
+from PIL import Image
+import traceback 
 
 class Infer: 
     def __init__( self, webcam=False, vid_name=1, frame_delay = 24 ):
@@ -28,6 +32,13 @@ class Infer:
             None
         """
 
+
+        # flag that terminates the continous obstacle detection
+        self.close_loop = False
+
+        # flag that pauses the obstacle detection while running other modules
+        self.detect_obstacles = True 
+
         self.frame_count = 1
         self.video_name = vid_name
         self.frame_delay = frame_delay
@@ -35,18 +46,97 @@ class Infer:
         # images and videos
         self.disparity_image_path = "./output\\current_frame"
         self.video_support_image = './video_support/current_frame'
-        self.output_image_path = './output\\current_frame'
+        self.output_image_path = './output/current_frame'
         video_path = f'./vid/12.mp4'
+
+        # for object detection
+        det_model_dir = "./config/ch_PP-OCRv3_det_infer"
+        rec_model_dir = "./config/ch_PP-OCRv3_rec_infer"
+
+        self.infer_ocr = PaddleOCR( use_angle_cls=True, det_model_dir=det_model_dir, rec_model_dir=rec_model_dir )
+
 
         # loading required models
         self.load_models()
+        
+        # binding the keys for running the text recognition and currency identification modules 
+        listener = Listener( on_press= self.handle_keypress ) 
+        listener.start()
 
         # checking if webcam mode is on 
-        
         if( webcam ): 
             self.load_from_webcam()
         else: 
             self.load_from_video( video_path )
+
+    def handle_keypress( self, key ):
+        try: 
+            if( key == Key.esc ): 
+                # gracefully terminating the execution 
+                self.close_loop = True
+                exit()
+
+            elif( key.char == "a" ): 
+                # running the text reading module when the key "a" is pressed
+                self.detect_obstacles = False
+                
+                # calling the ocr module
+                self.perform_ocr( )
+
+                self.detect_obstacles = True
+
+            elif( key.char == "b" ): 
+                # running the currency identification module when the key "b" is pressed
+                self.detect_obstacles = False
+
+                print("run the currency identification module")
+
+                self.detect_obstacles = True
+        except: 
+            pass
+
+    def read_txt_aloud( self, text ):
+        try:
+            self.engine.say(text)
+            self.engine.runAndWait()
+        except Exception as e: 
+            print( e )
+            traceback.print_exc()
+
+
+    def perform_ocr( self ): 
+        try:
+            img_path = "./input/test2.jpg"
+
+            # inference
+            result = self.infer_ocr.ocr(img_path)
+
+            # saving the results 
+            save_path = self.output_image_path + "_test.jpg"
+
+            image = cv2.imread(img_path)
+            extracted_text = ""
+
+            # for debugging 
+            if( len( result ) != 0 ):
+                boxes = [line[0] for line in result[0]]
+                txts = [line[1][0] for line in result[0]]
+                
+                # appending the current line to text string 
+                for txt in txts: 
+                    extracted_text = extracted_text + " " + txt
+
+                scores = [line[1][1] for line in result[0]]
+                im_show = draw_ocr(image, boxes, txts, scores, font_path='./config/en_standard.ttf')
+                im_show = Image.fromarray(im_show)
+                im_show.save(save_path)
+
+            # reading the text aloud 
+            self.read_txt_aloud( extracted_text )
+
+        except Exception as e: 
+            print( e )
+            traceback.print_exc()
 
     def load_models(self):
         """
@@ -68,7 +158,7 @@ class Infer:
             None
         """
         # Inference
-        self.model = torch.hub.load('ultralytics/yolov5', 'yolov5x', pretrained=True)
+        self.model = torch.hub.load('yolov5', 'yolov5x', pretrained=True, source="local" )
 
         # Disparity 
         self.disp_model = disparity.Disparity()
@@ -189,182 +279,174 @@ class Infer:
         count = 0
 
         # infinite loop 
-        while True: 
+        while not self.close_loop: 
             count = str(count)
 
-            # getting required frame
-            ret,frame = self.inp_stream.read()
+            if( self.detect_obstacles ):
+                # getting required frame
+                ret,frame = self.inp_stream.read()
 
-            if ret: 
+                if ret: 
+                    if (self.frame_count % self.frame_delay == 0 ):
+                        # starting timer for inference timing
+                        start = time.time()
+
+                        # writing the extracted images
+                        cv2.imwrite(self.output_image_path + ".jpg", frame)
+
+                        # checking if file does not exist then continuing the loop
+                        if not os.path.exists(self.output_image_path  + ".jpg"):
+                            print("file does not exist!")
+                            continue
+
+                        # YOLO object detection
+                        results = self.model(self.output_image_path + ".jpg")
+
+                        # showing results
+                        result_data = results.pandas().xyxy[0].to_dict(orient="records") 
+
+                        # list of boudning boxes
+                        bound_boxes = []
+                        for d in result_data:
+                            bound_boxes.append([d['xmin'], d['ymin'], d['xmax'], d['ymax'], d['name']])
+
+                        # retuning if no bounding boxes
+                        if( len( bound_boxes ) == 0 ):
+                            self.frame_count+=1
+                            continue
+
+                        # getting disparity filter from midas 
+                        self.disp_model.generate_image(self.output_image_path + ".jpg" )
+
+                        # loading disparity image        
+                        img = cv2.imread(self.disparity_image_path + ".png")
+
+                        # now once the image is generated plotting the bounding boxes on disparity image 
+                        for i in bound_boxes: 
+                            # displaying the bounding box
+                            cv2.rectangle(img, (int(i[0]), int(i[1])), (int(i[2]), int(i[3])), (0, 0, 255), 1)
+
+                            # also displaying the label 
+                            cv2.putText( img, i[4], (int(i[0]), int(i[1]) - 5), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 0, 255), 2 )
 
 
-                if (self.frame_count % self.frame_delay == 0 ):
-                    # starting timer for inference timing
-                    start = time.time()
+                        cv2.imwrite(self.disparity_image_path + ".png" , img)
 
-                    # writing the extracted images
-                    cv2.imwrite(self.output_image_path + ".jpg", frame)
+                        # now that bounding boxes are plotted finding out the color depth of the object 
+                        # by the color from five different points of the image and assigning the highest color
+                        bound_box_colors = []
 
-                    # checking if file does not exist then continuing the loop
-                    if not os.path.exists(self.output_image_path  + ".jpg"):
-                        print("file does not exist!")
-                        continue
+                        # getting window height and width
+                        height, width = img.shape[:2]
 
-                    # YOLO object detection
-                    results = self.model(self.output_image_path + ".jpg")
+                        x_padding = (i[2] * 0.02) 
+                        y_padding = (i[3] * 0.02)
 
-                    # showing results
-                    result_data = results.pandas().xyxy[0].to_dict(orient="records") 
+                        for i in bound_boxes:
+                            # list of colors of bounding box
+                            colors = []
 
-                    # list of boudning boxes
-                    bound_boxes = []
-                    for d in result_data:
-                        bound_boxes.append([d['xmin'], d['ymin'], d['xmax'], d['ymax'], d['name']])
+                            # getting color of bounding box's center    
+                            colors.append(img[int(int(i[1] + i[3]) * 0.5), int(int(i[0] + i[2]) * 0.5)])
 
-                    # retuning if no bounding boxes
-                    if( len( bound_boxes ) == 0 ):
-                        self.frame_count+=1
-                        continue
+                            # getting color from top left section 
+                            colors.append(img[int(i[1] + y_padding), int(i[0] + x_padding) if i[0] + x_padding < width else width - 1])
 
-                    # getting disparity filter from midas 
-                    self.disp_model.generate_image(self.output_image_path + ".jpg" )
+                            # getting color from bottom left section 
+                            colors.append(img[int(i[3] - y_padding), int(i[0] + x_padding) if i[0] + x_padding < width else width -1 ])
 
-                    # loading disparity image        
-                    img = cv2.imread(self.disparity_image_path + ".png")
+                            # getting color from top right section 
+                            colors.append(img[int(i[1] + y_padding), int(i[2] - x_padding)])
 
-                    # now once the image is generated plotting the bounding boxes on disparity image 
-                    for i in bound_boxes: 
-                        # displaying the bounding box
-                        cv2.rectangle(img, (int(i[0]), int(i[1])), (int(i[2]), int(i[3])), (0, 0, 255), 1)
+                            # getting color from bottom right section 
+                            colors.append(img[int(i[3] - y_padding), int(i[2] - x_padding)])
+                                                
+                            # finding the brightest color
+                            _, _, brightest_color = self.find_brightest_color( colors )
+                            bound_box_colors.append( brightest_color ) 
 
-                        # also displaying the label 
-                        cv2.putText( img, i[4], (int(i[0]), int(i[1]) - 5), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 0, 255), 2 )
+                            # finding the average color
+                            # avg_color = self.find_average_color( colors )
 
+                        # finding the brightest bounding box out of all bounding boxes 
+                        bound_box_ind, highest_sum, _ = self.find_brightest_color( bound_box_colors )
 
-                    cv2.imwrite(self.disparity_image_path + ".png" , img)
-
-                    # now that bounding boxes are plotted finding out the color depth of the object 
-                    # by the color from five different points of the image and assigning the highest color
-                    bound_box_colors = []
-
-                    # getting window height and width
-                    height, width = img.shape[:2]
-
-                    x_padding = (i[2] * 0.02) 
-                    y_padding = (i[3] * 0.02)
-
-                    for i in bound_boxes:
-                        # list of colors of bounding box
-                        colors = []
-
-                        # getting color of bounding box's center    
-                        colors.append(img[int(int(i[1] + i[3]) * 0.5), int(int(i[0] + i[2]) * 0.5)])
-
-                        # getting color from top left section 
-                        colors.append(img[int(i[1] + y_padding), int(i[0] + x_padding) if i[0] + x_padding < width else width - 1])
-
-                        # getting color from bottom left section 
-                        colors.append(img[int(i[3] - y_padding), int(i[0] + x_padding) if i[0] + x_padding < width else width -1 ])
-
-                        # getting color from top right section 
-                        colors.append(img[int(i[1] + y_padding), int(i[2] - x_padding)])
-
-                        # getting color from bottom right section 
-                        colors.append(img[int(i[3] - y_padding), int(i[2] - x_padding)])
-
-                        # cv2.circle(img, (int(int(i[0] + i[2]) * 0.5), int(int(i[1] + i[3]) * 0.5)), 5, (255, 0, 0), 2)
-                        # cv2.circle(img, (int(i[0] + x_padding), int(i[1] + y_padding)), 5, (255, 0, 0), 2)
-                        # cv2.circle(img, (int(i[0] + x_padding), int(i[3] - y_padding)), 5, (255, 0, 0), 2)
-                        # cv2.circle(img, (int(i[2] - x_padding), int(i[1] + y_padding)), 5, (255, 0, 0), 2)
-                        # cv2.circle(img, (int(i[2] - x_padding), int(i[3] - y_padding)), 5, (255, 0, 0), 2)
-                                            
-                        # finding the brightest color
-                        _, _, brightest_color = self.find_brightest_color( colors )
-                        bound_box_colors.append( brightest_color ) 
-
-                        # finding the average color
-                        # avg_color = self.find_average_color( colors )
-
-                    # finding the brightest bounding box out of all bounding boxes 
-                    bound_box_ind, highest_sum, _ = self.find_brightest_color( bound_box_colors )
-
-                    # showing result in text format
-                    bb = bound_boxes[bound_box_ind]
-                    
-                    # loading object detection image
-                    object_detection_image = cv2.imread(self.output_image_path + ".jpg" )
-
-                    # boundary lines
-                    object_detection_image = cv2.line( object_detection_image, (int( width*0.1),0), (int( width*0.1),height), (0,255,0), 2 )
-                    object_detection_image = cv2.line( object_detection_image, (int( width*0.9),0), (int( width*0.9),height), (0,255,0), 2 )
-                    object_detection_image = cv2.line( object_detection_image, (0,int( height*0.1)), (width,int( height*0.1)), (0,255,0), 2 )
-                    object_detection_image = cv2.line( object_detection_image, (0, int( height*0.9)), (width, int( height*0.9)), (0,255,0), 2 )
-
-                    # finding bounding boxes center
-                    bound_box_center = [ int((bb[0] + bb[2]) / 2), int((bb[1] + bb[3]) / 2) ]
-
-                    # ignoring the object if it has a brightesness below a certain threshold value
-                    if( highest_sum <= 650 ): 
-                        # saving the output image
-                        cv2.imwrite(self.video_support_image + ".jpg", object_detection_image)
-
-                        self.frame_count += 1
-                        continue
-
-                    # ingoring if the object is in the 5% of the frame from all 4 sides of the frame
-                    if( bound_box_center[0] < int( width*0.1) or bound_box_center[0] > int( width*0.9) or bound_box_center[1] < int( height*0.1) or bound_box_center[1] > int( height*0.9) ): 
-                        # saving the output image
+                        # showing result in text format
+                        bb = bound_boxes[bound_box_ind]
                         
-                        cv2.imwrite(self.video_support_image + ".jpg", object_detection_image)
+                        # loading object detection image
+                        object_detection_image = cv2.imread(self.output_image_path + ".jpg" )
 
-                        self.frame_count+=1
-                        continue 
+                        # boundary lines
+                        object_detection_image = cv2.line( object_detection_image, (int( width*0.1),0), (int( width*0.1),height), (0,255,0), 2 )
+                        object_detection_image = cv2.line( object_detection_image, (int( width*0.9),0), (int( width*0.9),height), (0,255,0), 2 )
+                        object_detection_image = cv2.line( object_detection_image, (0,int( height*0.1)), (width,int( height*0.1)), (0,255,0), 2 )
+                        object_detection_image = cv2.line( object_detection_image, (0, int( height*0.9)), (width, int( height*0.9)), (0,255,0), 2 )
+
+                        # finding bounding boxes center
+                        bound_box_center = [ int((bb[0] + bb[2]) / 2), int((bb[1] + bb[3]) / 2) ]
+
+                        # ignoring the object if it has a brightesness below a certain threshold value
+                        if( highest_sum <= 650 ): 
+                            # saving the output image
+                            cv2.imwrite(self.video_support_image + ".jpg", object_detection_image)
+
+                            self.frame_count += 1
+                            continue
+
+                        # ingoring if the object is in the 5% of the frame from all 4 sides of the frame
+                        if( bound_box_center[0] < int( width*0.1) or bound_box_center[0] > int( width*0.9) or bound_box_center[1] < int( height*0.1) or bound_box_center[1] > int( height*0.9) ): 
+                            # saving the output image
+                            
+                            cv2.imwrite(self.video_support_image + ".jpg", object_detection_image)
+
+                            self.frame_count+=1
+                            continue 
 
 
-                    # drawing the brightest bounding box on image
-                    object_detection_image = cv2.rectangle(object_detection_image, (int(bb[0]), int(bb[1])), (int(bb[2]), int(bb[3])), (0, 0, 255), 2)
-                    object_detection_image = cv2.putText(object_detection_image, bb[4], (int(bb[0]), int(bb[1]) - 5), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 0, 255), 2)
+                        # drawing the brightest bounding box on image
+                        object_detection_image = cv2.rectangle(object_detection_image, (int(bb[0]), int(bb[1])), (int(bb[2]), int(bb[3])), (0, 0, 255), 2)
+                        object_detection_image = cv2.putText(object_detection_image, bb[4], (int(bb[0]), int(bb[1]) - 5), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 0, 255), 2)
 
-                    # saving the output image
-                    cv2.imwrite(self.video_support_image  + ".jpg", object_detection_image)
+                        # saving the output image
+                        cv2.imwrite(self.video_support_image  + ".jpg", object_detection_image)
 
-                    # output_text
-                    output_text = ""
+                        # output_text
+                        output_text = ""
 
-                    # checking where the object is from the user (the object's direction)
-                    if bound_box_center[0] >= int(width * 0.4) and bound_box_center[0] <= int(width * 0.6): 
-                        output_text = f"{bb[4]} in front of you!"
+                        # checking where the object is from the user (the object's direction)
+                        if bound_box_center[0] >= int(width * 0.4) and bound_box_center[0] <= int(width * 0.6): 
+                            output_text = f"{bb[4]} in front"
 
-                    elif bound_box_center[0] >= int(width * 0.6) and bound_box_center[0] <= int(width * 0.8):
-                        output_text = f"{bb[4]} on slightly right of you!"
+                        elif bound_box_center[0] >= int(width * 0.6) and bound_box_center[0] <= int(width * 0.8):
+                            output_text = f"{bb[4]} slight right"
+                        
+                        elif bound_box_center[0] >= int(width * 0.2) and bound_box_center[0] <= int(width * 0.4):
+                            output_text = f"{bb[4]} slight left"
+
+                        elif bound_box_center[0] <= int(width * 0.2):
+                            output_text = f"{bb[4]} left"
+
+                        else:
+                            output_text = f"{bb[4]} right"
+                        
+                        if( self.detect_obstacles ):
+                            # converting text to speech
+                            self.read_txt_aloud( output_text )
+
+                        # calculating inference time
+                        end = time.time() 
+                        print("inference time - ", end - start)
                     
-                    elif bound_box_center[0] >= int(width * 0.2) and bound_box_center[0] <= int(width * 0.4):
-                        output_text = f"{bb[4]} on slightly left of you!"
+                else: 
+                    print("unable to load the video")
+                    break 
 
-                    elif bound_box_center[0] <= int(width * 0.2):
-                        output_text = f"{bb[4]} on left of you!"
-
-                    else:
-                        output_text = f"{bb[4]} on right of you!"
-
-                    # converting text to speech
-                    # print(output_text)
-                    # self.engine.say(output_text)
-                    # self.engine.runAndWait()
-
-                    # calculating inference time
-                    end = time.time() 
-                    print("inference time - ", end - start)
-                
-            else: 
-                print("unable to load the video")
-                break 
-
-            self.frame_count+=1
-            count = int(count) + 1
+                self.frame_count+=1
+                count = int(count) + 1
 
 # driver code
 if __name__ == "__main__": 
     # creating object of Infer
-    inf = Infer( webcam=True, vid_name=2, frame_delay=6 )
+    inf = Infer( webcam=False, vid_name=2, frame_delay=6 )
     inf.run()
