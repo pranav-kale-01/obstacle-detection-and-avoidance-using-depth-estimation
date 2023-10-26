@@ -96,9 +96,14 @@ class Infer:
             pass
 
     def read_txt_aloud( self, text ):
-        try:
+        try:    
+            # setting up text to speech
+            self.engine = pyttsx3.init("sapi5")
+            self.engine.setProperty('rate', 110)
+
             self.engine.say(text)
             self.engine.runAndWait()
+            
         except Exception as e: 
             print( e )
             traceback.print_exc()
@@ -133,7 +138,7 @@ class Infer:
 
             # reading the text aloud 
             self.read_txt_aloud( extracted_text )
-
+         
         except Exception as e: 
             print( e )
             traceback.print_exc()
@@ -161,12 +166,7 @@ class Infer:
         self.model = torch.hub.load('yolov5', 'yolov5x', pretrained=True, source="local" )
 
         # Disparity 
-        self.disp_model = disparity.Disparity()
-
-        # setting up text to speech
-        self.engine = pyttsx3.init("sapi5")
-        self.engine.setProperty('rate', 110)     
-
+        self.disp_model = disparity.Disparity() 
 
     def load_from_webcam(self): 
         """
@@ -283,6 +283,7 @@ class Infer:
             count = str(count)
 
             if( self.detect_obstacles ):
+                
                 # getting required frame
                 ret,frame = self.inp_stream.read()
 
