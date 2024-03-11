@@ -10,6 +10,7 @@ from pynput.keyboard import Key, Listener
 from paddleocr import PaddleOCR, draw_ocr
 from PIL import Image
 import traceback 
+import ffmpeg
 
 class Infer: 
     def __init__( self, webcam=False, vid_name=1, frame_delay = 24 ):
@@ -47,7 +48,7 @@ class Infer:
         self.disparity_image_path = "./output\\current_frame"
         self.video_support_image = './video_support/current_frame'
         self.output_image_path = './output/current_frame'
-        video_path = f'./vid/12.mp4'
+        video_path = f'./input/usecase_1.mp4'
 
         # for object detection
         det_model_dir = "./config/ch_PP-OCRv3_det_infer"
@@ -55,6 +56,9 @@ class Infer:
 
         self.infer_ocr = PaddleOCR( use_angle_cls=True, det_model_dir=det_model_dir, rec_model_dir=rec_model_dir )
 
+        # choose codec according to format needed
+        fourcc = cv2.VideoWriter_fourcc(*'mp4v') 
+        self.video = cv2.VideoWriter('output/video7+1.mp4', fourcc, 1, (1920, 1080))
 
         # loading required models
         self.load_models()
@@ -68,6 +72,25 @@ class Infer:
             self.load_from_webcam()
         else: 
             self.load_from_video( video_path )
+
+    def check_rotation(self, path_video_file):
+        # this returns meta-data of the video file in form of a dictionary
+        meta_dict = ffmpeg.probe(path_video_file)
+
+        # from the dictionary, meta_dict['streams'][0]['tags']['rotate'] is the key
+        # we are looking for
+        rotateCode = None
+        if int(meta_dict['streams'][0]['tags']['rotate']) == 90:
+            rotateCode = cv2.ROTATE_90_CLOCKWISE
+        elif int(meta_dict['streams'][0]['tags']['rotate']) == 180:
+            rotateCode = cv2.ROTATE_180
+        elif int(meta_dict['streams'][0]['tags']['rotate']) == 270:
+            rotateCode = cv2.ROTATE_90_COUNTERCLOCKWISE
+
+        return rotateCode
+
+    def correct_rotation(self, frame, rotateCode):  
+        return cv2.rotate(frame, rotateCode) 
 
     def handle_keypress( self, key ):
         try: 
@@ -111,7 +134,7 @@ class Infer:
 
     def perform_ocr( self ): 
         try:
-            img_path = "./input/test2.jpg"
+            img_path = "./output/current_frame.jpg"
 
             # inference
             result = self.infer_ocr.ocr(img_path)
@@ -202,8 +225,10 @@ class Infer:
         Raises:
             None
         """
-        print( video_path )
-        self.inp_stream = cv2.VideoCapture( video_path )
+        self.inp_stream = cv2.VideoCapture( video_path, apiPreference=cv2.CAP_MSMF )
+        
+        # check if video requires rotation
+        # self.inp_stream = self.check_rotation(video_path)
 
     def find_brightest_color( self, colors ):
         """
@@ -411,6 +436,7 @@ class Infer:
 
                         # saving the output image
                         cv2.imwrite(self.video_support_image  + ".jpg", object_detection_image)
+                        self.video.write( object_detection_image )
 
                         # output_text
                         output_text = ""
@@ -434,6 +460,7 @@ class Infer:
                         if( self.detect_obstacles ):
                             # converting text to speech
                             self.read_txt_aloud( output_text )
+                            pass
 
                         # calculating inference time
                         end = time.time() 
@@ -441,10 +468,13 @@ class Infer:
                     
                 else: 
                     print("unable to load the video")
+                    self.video.release()
                     break 
 
                 self.frame_count+=1
                 count = int(count) + 1
+
+        self.video.release()
 
 # driver code
 if __name__ == "__main__": 

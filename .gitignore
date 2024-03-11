@@ -5,3 +5,4 @@ vid/*.mp4
 *.pyc
 venv/
 *.pt
+*.mp4
