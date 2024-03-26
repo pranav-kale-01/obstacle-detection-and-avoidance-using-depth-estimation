@@ -6,3 +6,5 @@ vid/*.mp4
 venv/
 *.pt
 *.mp4
+*.onnx
+*.webm
