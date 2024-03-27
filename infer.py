@@ -461,7 +461,6 @@ class Infer:
                     (0, 255, 0),
                     2,
                 )
-
                  
                 # finding bounding boxes center
                 bound_box_center = [int((bb[0] + bb[2]) / 2), int((bb[1] + bb[3]) / 2)]
