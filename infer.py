@@ -198,7 +198,7 @@ class Infer:
 
         # Disparity
         self.transform = midas_transforms().swin256_transform
-        self.ort_sess = ort.InferenceSession("test.onnx")
+        self.ort_sess = ort.InferenceSession("./midas_weights/test.onnx")
 
     def load_from_webcam(self):
         """
@@ -361,6 +361,9 @@ class Infer:
                     )
 
                 cv2.imwrite(self.disparity_image_path + ".png", img)
+
+                print("inference time - ", time.time() - start)
+                self.frame_count += 1
 
                 # now that bounding boxes are plotted finding out the color depth of the object
                 # by the color from five different points of the image and assigning the highest color
