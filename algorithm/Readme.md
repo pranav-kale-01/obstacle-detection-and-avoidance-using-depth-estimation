@@ -5,9 +5,9 @@
 
 ### Step 1: Download the required weights:
 <ul>
- <li> Use the following custom ONNX weights for <a href="https://github.com/pranav-kale-01/inference_code/releases/download/v1.0.1/test.onnx" > MIDAS.</a> and put the weights in ./midas_weights directory </li> 
+ <li> Use the following custom ONNX weights for <a href="https://github.com/pranav-kale-01/obstacle-detection-and-avoidance-using-depth-estimation/releases/download/v1.0.1/test.onnx" > MIDAS.</a> and put the weights in ./midas_weights directory </li> 
 
- <li> Use the following custom weights for <a href="https://github.com/pranav-kale-01/inference_code/releases/download/v1.0.1/newbestyolov8.pt"> YOLO.</a> and put the weights in the root directory of the project "./" </li>
+ <li> Use the following custom weights for <a href="https://github.com/pranav-kale-01/obstacle-detection-and-avoidance-using-depth-estimation/releases/download/v1.0.1/newbestyolov8.pt"> YOLO.</a> and put the weights in the root directory of the project "./" </li>
 </ul>
 
 ### Step 2: setup environment

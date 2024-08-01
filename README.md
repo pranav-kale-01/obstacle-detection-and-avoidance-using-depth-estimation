@@ -11,9 +11,9 @@
     <br />
     <a href="https://youtu.be/3QqH0R92WKA">View Demo</a>
     ·
-    <a href="https://github.com/pranav-kale-01/inference_code/issues">Report Bug</a>
+    <a href="https://github.com/pranav-kale-01/obstacle-detection-and-avoidance-using-depth-estimation/issues">Report Bug</a>
     ·
-    <a href="https://github.com/pranav-kale-01/inference_code/issues">Request Feature</a>
+    <a href="https://github.com/pranav-kale-01/obstacle-detection-and-avoidance-using-depth-estimation/issues">Request Feature</a>
     <br />
   </p>
 </div>
@@ -45,9 +45,8 @@ Don't forget to give the project a star! Thanks again!
 
 ## Contributors 
 
-<a href="https://github.com/pranav-kale-01/inference_code/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=pranav-kale-01/inference_code" />
+<a href="https://github.com/pranav-kale-01/obstacle-detection-and-avoidance-using-depth-estimation/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=pranav-kale-01/obstacle-detection-and-avoidance-using-depth-estimation" />
 </a>
-<br/>
 
 This chart was made with [contrib.rocks](https://contrib.rocks).
