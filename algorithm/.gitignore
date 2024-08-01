@@ -5,3 +5,6 @@ vid/*.mp4
 *.pyc
 venv/
 *.pt
+*.mp4
+*.onnx
+*.webm
