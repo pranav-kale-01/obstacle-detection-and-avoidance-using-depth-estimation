@@ -46,8 +46,9 @@ Don't forget to give the project a star! Thanks again!
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
-<img src="https://drive.google.com/uc?export=view&id=11zw6r1eGaQWQ5sLF0TSgG8T0fLbnlQ-8" align="center">
-
+<div style="text-align: center;">
+    <img src="https://drive.google.com/uc?export=view&id=11zw6r1eGaQWQ5sLF0TSgG8T0fLbnlQ-8" alt="Image">
+</div>
 ## Contributors
 
 <a href="https://github.com/pranav-kale-01/obstacle-detection-and-avoidance-using-depth-estimation/graphs/contributors">
