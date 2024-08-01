@@ -35,6 +35,6 @@ This project involves building a hardware system using various components like t
 
 ## Device Architecture
 
-![Device Architecture](path_to_your_image.png)
+<img src="https://drive.google.com/uc?export=view&id=1huLgg3hTPl8QP3dlZ1cOO9xC5gn7j-1E">
 
 ## Device
