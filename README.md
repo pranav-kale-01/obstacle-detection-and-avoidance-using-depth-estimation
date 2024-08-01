@@ -21,7 +21,6 @@
 <br/>
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
-
  <h1 align="center">Key Features</h1>
   
 - **Obstacle Detection Algorithm**: Utilizes state-of-the-art image processing and machine learning techniques to accurately identify various obstacles in a pedestrian's path.
@@ -33,6 +32,11 @@
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
+<h1 align="center">Detais About Project</h1>
+<p align="center">
+    The visually impaired community faces significant daily challenges, particularly in safe navigation, receiving critical information, and financial management. Key needs include acute obstacle detection for safe mobility, message reading for communication, and accurate currency identification and counting.
+
+To address these needs, we introduce "SAHARA," an innovative automated smart assistant designed specifically for the visually impaired. SAHARA integrates advanced technology into a compact, user-friendly device with features like obstacle detection, visual message-to-speech conversion, and precise currency identification and counting. By leveraging cutting-edge sensors and AI algorithms, SAHARA aims to enhance safety, accessibility, and financial independence, ultimately fostering a more inclusive and empowered society.</p>
 
 ## Contributing
 
@@ -43,7 +47,7 @@ Don't forget to give the project a star! Thanks again!
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
-## Contributors 
+## Contributors
 
 <a href="https://github.com/pranav-kale-01/obstacle-detection-and-avoidance-using-depth-estimation/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=pranav-kale-01/obstacle-detection-and-avoidance-using-depth-estimation" />
