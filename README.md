@@ -46,7 +46,7 @@ Don't forget to give the project a star! Thanks again!
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
-<img src="https://drive.google.com/file/d/11zw6r1eGaQWQ5sLF0TSgG8T0fLbnlQ-8/view?usp=sharing" width=200 height=200>
+<img src="https://drive.google.com/uc?export=view&id=11zw6r1eGaQWQ5sLF0TSgG8T0fLbnlQ-8" width=200 height=200>
 
 ## Contributors
 
