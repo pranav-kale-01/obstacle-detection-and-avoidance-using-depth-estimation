@@ -8,23 +8,11 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-
+    
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v2
-
     - name: Generate Contributors Images
       uses:  wow-actions/contributors-list@v1
-       with:
+      with:
           GITHUB_TOKEN: ${{ secrets.ACTIONS_TOKEN }}
           round: true
-          userNameHeight: 19
-          
-    - name: Deploy SVG to GitHub Pages
-      uses: peaceiris/actions-gh-pages@v3
-      with:
-        github_token: ${{ secrets.ACTIONS_TOKEN }}
-        publish_dir: ./build
-        publish_branch: gh-pages
-        user_name: 'github-actions'
-        user_email: 'actions@github.com'
+          userNameHeight: 24

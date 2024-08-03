@@ -1,0 +1,3 @@
+[submodule "algorithm/ultralytics"]
+	path = algorithm/ultralytics
+	url = https://github.com/ultralytics/ultralytics
