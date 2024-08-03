@@ -22,11 +22,16 @@ jobs:
           round: true
           userNameHeight: 19
           
+    - name: Setup Git
+      run: |
+          git config --global user.name 'Your Name'
+          git config --global user.email 'your-email@example.com'
+
     - name: Deploy SVG to GitHub Pages
-      uses: peaceiris/actions-gh-pages@v3
-      with:
-        github_token: ${{ secrets.ACTIONS_TOKEN }}
-        publish_dir: ./build
-        publish_branch: gh-pages
-        user_name: 'github-actions'
-        user_email: 'actions@github.com'
+      run: |
+          git clone --branch=gh-pages https://github.com/${{ github.repository }} gh-pages
+          cp build/CONTRIBUTORS.svg gh-pages/
+          cd gh-pages
+          git add CONTRIBUTORS.svg
+          git commit -m "Deploy updated SVG"
+          git push origin gh-pages
