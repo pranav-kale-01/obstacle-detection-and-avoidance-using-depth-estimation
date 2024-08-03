@@ -3,7 +3,7 @@ name: Generate and Deploy Contributors List
 on:
   push:
     branches:
-      - master, pranav
+      - master
 
 jobs:
   build:
@@ -16,11 +16,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.ACTIONS_TOKEN }}
           round: true
           userNameHeight: 24
-
-    - name: Generate Collaborators Images
-      uses: wow-actions/contributors-list@v1
-      with:
-          GITHUB_TOKEN: ${{ secrets.ACTIONS_TOKEN }}
           svgTemplate: >
             <svg
               xmlns="http://www.w3.org/2000/svg"
