@@ -50,11 +50,10 @@ Don't forget to give the project a star! Thanks again!
     <img src="https://drive.google.com/uc?export=view&id=11zw6r1eGaQWQ5sLF0TSgG8T0fLbnlQ-8" alt="Image">
 </div>
 
-
 ## Contributors
 
-<a href="https://github.com/pranav-kale-01/obstacle-detection-and-avoidance-using-depth-estimation/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=pranav-kale-01/obstacle-detection-and-avoidance-using-depth-estimation" />
-</a>
+A huge shoutout to all our contributors for their providing their time and knowledge towards making this study more useful!
 
-This chart was made with [contrib.rocks](https://contrib.rocks).
+<img src="CONTRIBUTORS.svg" />
+
+**Your Efforts are truly appriciated**
