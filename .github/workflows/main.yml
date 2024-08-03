@@ -3,7 +3,7 @@ name: Generate and Deploy Contributors List
 on:
   push:
     branches:
-      - [master, pranav]
+      - master, pranav
 
 jobs:
   build:
