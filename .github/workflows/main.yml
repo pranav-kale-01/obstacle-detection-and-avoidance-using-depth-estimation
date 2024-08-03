@@ -21,7 +21,10 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.ACTIONS_TOKEN }}
           round: true
           userNameHeight: 19
-          
+
+    - name: List build directory
+      run: ls -al build  # Debugging step, can be removed later
+
     - name: Setup Git
       run: |
           git config --global user.name 'Your Name'
