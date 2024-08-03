@@ -54,6 +54,8 @@ Don't forget to give the project a star! Thanks again!
 
 A huge shoutout to all our contributors for their providing their time and knowledge towards making this study more useful!
 
-<img src="CONTRIBUTORS.svg" />
+<object type="image/svg+xml" data="CONTRIBUTORS.svg" width="100%" height="400px">
+  Your browser does not support SVG
+</object>
 
 **Your Efforts are truly appriciated**
