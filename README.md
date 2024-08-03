@@ -58,11 +58,5 @@ A huge shoutout to all our contributors for their providing their time and knowl
   <img src="CONTRIBUTORS.svg"/> 
 </a>
 
-## Collaborators
-
-<a href="https://github.com/pranav-kale-01/obstacle-detection-and-avoidance-using-depth-estimation/graphs/contributors">
-  <img src="COLLABORATORS.svg"/> 
-</a>
-
 
 **Your Efforts are truly appriciated**
