@@ -10,9 +10,6 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v2
-      
     - name: Generate Contributors Images
       uses:  wow-actions/contributors-list@v1
       with:
@@ -20,16 +17,10 @@ jobs:
           round: true
           userNameHeight: 19
 
-    - name: List build directory
-      run: ls -al build  # Debugging step, can be removed later
-
-    - name: Setup Git
-      run: |
-          git config --global user.name 'Your Name'
-          git config --global user.email 'your-email@example.com'
-
     - name: Deploy SVG to GitHub Pages
       run: |
+          git config --global user.name 'Pranav Kale'
+          git config --global user.email 'pranavkale021998@gmail.com'
           git clone --branch=gh-pages https://github.com/${{ github.repository }} gh-pages
           cp build/CONTRIBUTORS.svg gh-pages/
           cd gh-pages
