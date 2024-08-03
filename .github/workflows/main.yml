@@ -16,3 +16,14 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.ACTIONS_TOKEN }}
           round: true
           userNameHeight: 24
+          svgTemplate: >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              xmlns:xlink="http://www.w3.org/1999/xlink"
+              version="1.1"
+              width="{{ width }}"
+              height="{{ collaboratorsHeight }}"
+            >
+              <style>.contributor-link { cursor: pointer; }</style>
+              {{{ collaborators }}}
+            </svg>

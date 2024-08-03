@@ -55,7 +55,14 @@ Don't forget to give the project a star! Thanks again!
 A huge shoutout to all our contributors for their providing their time and knowledge towards making this study more useful!
 
 <a href="https://github.com/pranav-kale-01/obstacle-detection-and-avoidance-using-depth-estimation/graphs/contributors">
-  <img src="https://raw.githubusercontent.com/pranav-kale-01/obstacle-detection-and-avoidance-using-depth-estimation/28520afac291565170a5d4fd7acfcda4e25c5ad1/CONTRIBUTORS.svg"/> 
+  <img src="CONTRIBUTORS.svg"/> 
 </a>
+
+## Collaborators
+
+<a href="https://github.com/pranav-kale-01/obstacle-detection-and-avoidance-using-depth-estimation/graphs/contributors">
+  <img src="COLLABORATORS.svg"/> 
+</a>
+
 
 **Your Efforts are truly appriciated**
